@@ -1,4 +1,6 @@
+
 from cStringIO import StringIO
+
 import matplotlib.pyplot as plt
 import string
 import random
@@ -13,7 +15,7 @@ numbers = ('1', '2', '3', '4', '5', '6', '7', '8', '9')
 operation = ('frac', 'int', '^', 'frac', 'sum', 'int', '^', 'sum')
 plt.rcParams['font.sans-serif'] = "Comic Sans MS"
 plt.rcParams['font.family'] = "sans-serif"
-data_size = 1000
+data_size = 20000
 test_data_size = 200
 y = np.empty((data_size, 4), dtype=int)
 
@@ -45,7 +47,7 @@ def generate_data(image_count):
             number = numbers[random.randint(0, len(numbers) - 1)]
             expression = r'\sum_{' + letter1 + '=1}^{\infty}' + number + '^{' + letter1 + '}'
         elif operation[op] == 'int':
-            y[i] = [0, 1, 1, 1]
+            y[i] = [0, 0, 0, 1]
             expression = r'\int_{' + letter1 + '} ^ {' + letter2 + '}' + letter3 + '^ 2d' + letter3
         image_bytes = render_latex(expression, fontsize=5, dpi=200, format_='png')
         image_name = './data/' + str(i) + '.png'
@@ -59,6 +61,8 @@ def generate_data(image_count):
 def read_data():
     image_folder_path = 'data'
     image_path = glob.glob(image_folder_path + '/*.png')
+
+    
     im_array = np.array([np.reshape(np.array(Image.open(img).convert('L'), 'f'),(3000)) for img in image_path])
     # print im_array.shape
     y_from_file = pickle.load(open("save.p", "rb"))
@@ -98,6 +102,7 @@ if __name__ == '__main__':
 
     train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
 
+    chunk = 0
     for _ in range(1000):
         batch_x, batch_y = next_batch(100, input_data)
         train_step.run(feed_dict={x: batch_x, y_: batch_y})
@@ -105,4 +110,4 @@ if __name__ == '__main__':
     correct_prediction = tf.equal(tf.argmax(xy, 1), tf.argmax(y_, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
     batch_test, batch_lables = next_batch(test_data_size, input_data)
-    print accuracy.eval(feed_dict={x: batch_test, y_: batch_lables})
+    print(accuracy.eval(feed_dict={x: batch_test, y_: batch_lables}))
